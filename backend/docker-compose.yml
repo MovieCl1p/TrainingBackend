@@ -1,0 +1,37 @@
+version: "3.8"
+networks:
+  neo4j-internal:
+
+services:
+  neo4j:
+    image: neo4j:5.5.0-community
+    restart: unless-stopped
+    hostname: neo4j
+    networks:
+      neo4j-internal:
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - ./neo4j/neo4j.conf:/conf/neo4j.conf
+
+    environment:
+      CONFIG_LOG_LEVEL: "debug"
+      NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+      NEO4J_AUTH: "neo4j/testpass"
+      NEO4J_EDITION: "community"
+      NEO4J_server_default__listen__address: "0.0.0.0"
+      NEO4J_server_default__advertised__address: "localhost"
+      NEO4J_server_http_advertised__address: ":7474"
+      NEO4J_server_bolt_advertised__address: ":7687"
+
+
+    # Simple check testing whether the port 7474 is opened.
+    # If so, the instance running inside the container is considered as "healthy".
+    # This status can be checked using the "docker ps" command.
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
+      interval: 60s
+      timeout: 60s
+      retries: 3
+      start_period: 5s
